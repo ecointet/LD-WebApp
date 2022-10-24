@@ -1,0 +1,28 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: ecointet-webapp
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: ecointet-webapp
+  replicas: 2 # amount of pods must be > 1
+  template:
+    metadata:
+      labels:
+        app: ecointet-webapp
+    spec:
+      containers:
+      - name: ecointet-webapp
+        image: ${artifact.metadata.image}
+        ports:
+        - containerPort: 8000
+          name: port-name
+        volumeMounts:
+        - mountPath: /data-ext
+          name: volume
+      volumes:
+      - name: volume
+        persistentVolumeClaim:
+          claimName: ecointet-pvc-2

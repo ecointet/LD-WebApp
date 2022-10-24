@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-ecointet-webapp
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "ecointet-webapp-static-ip-3"
+spec:
+  backend:
+    serviceName: nodeport-ecointet-webapp
+    servicePort: 8000
+    

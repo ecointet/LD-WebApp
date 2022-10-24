@@ -1,0 +1,10 @@
+version: "2"
+
+services:
+    harness-webapp:
+        build: ./nginx
+        ports:
+            - 80:8000
+        volumes:
+            - ./src:/data-ext
+        privileged: true

@@ -1,0 +1,58 @@
+kind: pipeline
+name: default
+
+##Test Phase
+steps:
+- name: CodeUnitTests
+  image: golang
+  commands:
+  - echo "SonarQube Test Done"
+
+## Docker Image Build and push
+- name: DockerImageCreation  
+  image: plugins/docker
+  settings:
+    username: ecointet
+    password:
+      from_secret: ecointet-docker-hub-password
+    repo: ecointet/harness-webapp-demo
+    dockerfile: nginx/Dockerfile
+    context: nginx/
+    tag: pullrequest-${DRONE_PULL_REQUEST}
+    #tag: "stable4.6"
+
+- name: HarnessToDeploy
+  image: rlachhman/drone-harness-trigger:1.0.0
+  settings:  
+    accountid:
+      from_secret: harness_accountid
+    apikey: 
+      from_secret: harness_apikey
+    applicationid: 
+      from_secret: harness_applicationid
+    harnesswebhookid: 
+      from_secret: harness_webhookid
+    harnessartifactname: "ecointet_harness-webapp-demo"
+    artifactversion: pullrequest-${DRONE_PULL_REQUEST}
+    #artifactversion: "stable4.6"
+    harnessservicename: "ecointet-webapp"
+
+#Notification Phase
+- name: SlackNotif
+  image: plugins/slack
+  settings:
+    webhook: 
+      from_secret: slack-webhook
+    channel: ecointet-channel
+    icon_url: https://unsplash.it/256/256/?random
+  when:
+    status: [ success, failure ]
+#- name: docker-api  
+#  image: plugins/docker
+#  settings:
+#    username: ecointet
+#    password: 7d5219ab-ee5b-4111-b5f5-21a5623d3a48
+#    repo: ecointet/harness-webapp-demo-api
+#    dockerfile: nginx/Dockerfile
+#    context: nginx/
+#    tags: "latest"
