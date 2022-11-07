@@ -613,7 +613,7 @@ var user = {
   			  	}
       };
 
-var ldclient = LDClient.initialize('6356c1fdc7cb301156ac03b0', user);
+var ldclient = LDClient.initialize('TOKEN-ID', user);
 console.log(user);
 
 //LaunchDarkly - Render the page
