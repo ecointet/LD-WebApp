@@ -1,12 +1,13 @@
 <?php
-session_save_path('/data-ext/sessions');
-ini_set('session.gc_probability', 1);
-session_start();
+//session_save_path('/data-ext/sessions');
+//ini_set('session.gc_probability', 1);
+//session_start();
 require_once "data/src/Store.php";
+error_reporting(0);
 $folder = __DIR__;
-$folder = "/data-ext";
-$databaseDirectory = $folder . "/demo-harness-database";
-$store = new \SleekDB\Store("demo-harness", $databaseDirectory);
+#$folder = "/data-ext";
+$databaseDirectory = $folder . "/demo-database";
+$store = new \SleekDB\Store("demo-database", $databaseDirectory);
 
 function getLogo()
 {}
@@ -103,4 +104,20 @@ function insertPref($store)
 
     $results = $store->insert($data);
 }
+?>
+
+<?php
+
+function getCountry()
+ {
+    $user_ip = '0.0.0.0';
+    $user_ip = $_SERVER['REMOTE_ADDR'];
+    $close_url = stream_context_create(array('http' => array('header'=>'Connection: close\r\n')));
+    $user_country = json_decode(file_get_contents("https://ipinfo.io/$user_ip/json",false,$close_url));
+    if ($user_country)
+        return $user_country->country;
+    else
+        return "fr";
+}
+
 ?>

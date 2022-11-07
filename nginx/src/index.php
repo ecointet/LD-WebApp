@@ -3,8 +3,8 @@
   header("Cache-Control: no-cache, must-revalidate"); //HTTP 1.1
   header("Pragma: no-cache"); //HTTP 1.0
   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
-  session_save_path('/data-ext/sessions');
-  ini_set('session.gc_probability', 1);
+  #session_save_path('/data-ext/sessions');
+  #ini_set('session.gc_probability', 1);
   session_start();
 
 require("tools.php");
@@ -37,13 +37,19 @@ if (!empty($_GET['id']))
 //echo "DEBUG";
 //echo print_r($customerstore->findall());
 //DEFAULT
-if (!isset($_SESSION["link"]) || empty($_SESSION["link"])) $_SESSION["link"] = "https://harness.io/";
-if (!isset($_SESSION["logo"]) || empty($_SESSION["logo"])) $_SESSION["logo"] = "/img/harness-logo.png";
+if (!isset($_SESSION["link"]) || empty($_SESSION["link"])) $_SESSION["link"] = "https://launchdarkly.com/";
+if (!isset($_SESSION["logo"]) || empty($_SESSION["logo"])) $_SESSION["logo"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ABC-2021-LOGO.svg/1200px-ABC-2021-LOGO.svg.png";
 if (!isset($_SESSION["background"]) || empty($_SESSION["background"])) $_SESSION["background"] = "http://avante.biz/wp-content/uploads/Background-Pics-HD/Background-Pics-HD-001.jpg";
 if (!isset($_SESSION['buyer']))
 {
     $_SESSION['buyer'] = readable_random_string();
 }
+
+//FORCE
+$_SESSION["link"] = "https://launchdarkly.com/";
+$_SESSION["logo"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ABC-2021-LOGO.svg/1200px-ABC-2021-LOGO.svg.png";
+$_SESSION["background"] = "https://officesnapshots.com/wp-content/uploads/2021/06/launchdarkly-offices-oakland-2.jpg";
+
 ?>
 	<!DOCTYPE html>
 	<html lang="zxx" class="no-js">
@@ -73,22 +79,39 @@ var interval = null;
 </script>
 <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script src="https://unpkg.com/launchdarkly-js-client-sdk@2"></script>
+<script>
 
-<!-- Harness Feature Flag Module -->
-<script type="module">
-      import { initialize, Event } from 'https://unpkg.com/@harnessio/ff-javascript-client-sdk@1.3.7/dist/sdk.client.js'
 
-      const log = msg => {
-        document.querySelector('#log').innerHTML += `${msg}\n`
+// Launch Darkly Feature Flag Module
+
+function render() {
+
+	//BACKGROUND
+        var blackwhite = ldclient.variation('black-and-white', false);
+		if (blackwhite == true)
+			var imageUrl = "/img/bw.jpeg";
+				else
+			var imageUrl = $( "#background" ).val();
+		$(".banner-area").css("background", "url(" + imageUrl + ")");
+
+        console.log("SDK successfully connected! The value of black-and-white is " + blackwhite + " for " + user.name)
+
+
+	//MAIN LOGO
+		var country = ldclient.variation('country-mode', "ld-logo");
+		$('#vaccin').html('<img src="/img/'+country+'.png" width="300px" />');
+        console.log("The value of the image is " + country + " for " + user.name)
+
+
+	//REDIRECTION
+		var redirect = ldclient.variation('redirection', "false");
+		
+		if (redirect == true)
+			window.location.replace($( "#link" ).val());
       }
 
-      const cf = initialize('8b42e435-ed82-4c21-9579-39ae843964a6', {
-    identifier: "everyone",      // Target identifier
-    name: "Everyone",                  // Optional target name
-    attributes: {                            // Optional target attributes
-      email: 'etienne.cointet@harness.io'
-    }
-  });
+	  /*
 
   cf.on(Event.READY, flags => {
         console.log(JSON.stringify(flags, null, 2))
@@ -130,7 +153,7 @@ var interval = null;
 					var image = "img/captain-america.png";
 				
 				console.log(image);	
-				$('#vaccin').html('<a href="'+$( "#link" ).val()+'"><img src="'+image+'" width="200px" /></a>');
+				//$('#vaccin').html('<a href="'+$( "#link" ).val()+'"><img src="'+image+'" width="200px" /></a>');
 			}
 
 			//Redirect To the Custom Link
@@ -143,6 +166,7 @@ var interval = null;
 			}
 
 	  }
+	  */
 </script>
 
 
@@ -188,12 +212,13 @@ var interval = null;
 		<body>
 		<script>
 
+/*
 function loadvaccin(){
 	window.interval = setInterval(function(){
       $('#vaccin').load('result.php');
  },2000);
 }
-
+*/
 function goto($hashtag){
 	 //document.getElementById($hashtag).style.visibility = "visible";
 	 //if ($hashtag == "home") document.getElementById("error").style.visibility = "hidden";
@@ -318,7 +343,7 @@ function DoAction(v_action, v_value)
 }
 .banner-area {
     /* BACKGROUND */
-    background: url(<? echo $_SESSION["background"]; ?>) center;
+    background: url(<?php echo $_SESSION["background"]; ?>) center;
     background-size: cover;
 }
 </style>
@@ -326,7 +351,7 @@ function DoAction(v_action, v_value)
 			    <div class="container">
 			    	<div class="row align-items-center justify-content-between d-flex">
 				      <div id="logo">
-				        <a href="/"><img src="<? echo $_SESSION["logo"]; ?>" alt="" title="" height="50px"/></a>
+				        <a href="/"><img src=<?php echo $_SESSION["logo"]; ?> alt="" title="" height="50px"/></a>
 				      </div>
 				      <nav id="nav-menu-container">
 				        <ul class="nav-menu">
@@ -334,6 +359,7 @@ function DoAction(v_action, v_value)
 				          <li><a href="#service">share with people</a></li>
 						  <li class="menu-has-children"><a href="">CONFIG</a>
 				            <ul>
+							<li><?php echo "Version : <b>1.3</b>" ?></li>
 				              <li>Customer: <form><input type="text" id="customer" value="<?php echo $_SESSION['buyer']; ?>"></form></li>
 							  <li>Logo: <form><input type="text" id="customer-logo" value="<?php echo $_SESSION['logo']; ?>"></form></li>
 							  <li>Background: <form><input type="text" id="background" value="<?php echo $_SESSION['background']; ?>"></form></li>
@@ -357,7 +383,7 @@ function DoAction(v_action, v_value)
 							<h1>
 												
 							</h1>
-							<div id="vaccin" name="vaccin" id="vaccin" align="center"><a href="#login"><div align="center"><img src="img/captain-america.png" width="200px" /></div></a></div>
+							<div id="vaccin" name="vaccin" id="vaccin" align="center"><div align="center"><img src="/img/ld-logo.png" width="300px"/></div></div>
 						</div>											
 					</div>
 				</div>
@@ -373,11 +399,11 @@ function DoAction(v_action, v_value)
 						<div class="col-md-8 pb-40 header-text">
 							<h1>
 							<?php 
-							$url = $_SERVER['HTTP_HOST']."/?id=".$_SESSION['buyer'];
+							$url = $_SERVER['HTTP_HOST']; //."/?id=".$_SESSION['buyer'];
 							//echo $url
 							?></h1>
 							<p>
-								<div style="align:center;font-size:15px">Get the App!</div>
+								<div style="align:center;font-size:15px"><a href="<?php echo $url; ?>">Get the App!</a></div>
 								<?php echo '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=http%3A%2F%2F'.$url.'"%2F&choe=UTF-8" width="100%">'; ?>
 							</p>
 						</div>
@@ -385,9 +411,9 @@ function DoAction(v_action, v_value)
 					<div class="row">
 						<div class="col-lg-4 col-md-6">
 							<div class="single-service">
-								<h4><span class="lnr lnr-user"></span>Expert Technicians</h4>
+								<h4><span class="lnr lnr-user"></span>Welcome <b><?php echo $_SESSION['buyer']?></b></h4>
 								<p>
-									Usage of the Internet is becoming more common due to rapid advancement of technology and power.
+									We are very happy to see you <b><?php echo $_SESSION['buyer']?></b>, are you visiting this website from your <b><?php echo $_SESSION["device"]; ?></b> ?! 
 								</p>
 							</div>
 						</div>
@@ -439,7 +465,7 @@ function DoAction(v_action, v_value)
 		
 
 			<!-- Start ERROR Area -->
-			<section class="service-area section-gap" id="error" style="visibility: visible;">
+			<section class="service-area section-gap" id="error" style="visibility: hidden;">
 				<div class="container">
 					<div class="row d-flex justify-content-center">
 						<div class="col-md-8 pb-40 header-text">
@@ -475,7 +501,7 @@ function DoAction(v_action, v_value)
 							<div class="single-footer-widget">
 								<h6>About Us</h6>
 								<p>
-									Powered by <a href="https://twitter.com/ecointet">Etienne Cointet</a> for Harness.io - 2021.
+									Powered by <a href="https://twitter.com/ecointet">Etienne Cointet</a> - 2022.
 								</p>
 								<p class="footer-text">
 									<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
@@ -573,8 +599,26 @@ if (person == null || person == "") {
 		}
 }
 
-loadvaccin(); // This will run on page load
+//loadvaccin(); // This will run on page load
 
+//LaunchDarkly Scripts
+var user = {
+        name: '<?php echo $_SESSION['buyer']?>',
+        key: '<?php echo $_SESSION['buyer']?>',
+		ip: '<?php echo $_SERVER['REMOTE_ADDR']; ?>',
+		country: navigator.languages[0],
+		"custom":{
+			"lang": [navigator.languages[0]],
+			"device": [navigator.platform]
+  			  	}
+      };
+
+var ldclient = LDClient.initialize('6356c1fdc7cb301156ac03b0', user);
+console.log(user);
+
+//LaunchDarkly - Render the page
+ldclient.on('ready', render);
+ldclient.on('change', render);
 
 //GetName();
 			</script>
